@@ -5,7 +5,7 @@ It currently focuses on **Web Application Labs** (OWASP Top 10) and uses **Docke
 
 > ⚠️ Note: This version includes only the **Web Application Labs** module.  
 > Future releases will include integrated tools, API testing, Wi-Fi simulations, and an AI chatbot.
-> ⚠️ Note: For labs to be working containers should be open from my end to remotely acsess the labs.
+>  ⚠️ Note: For labs to be working containers should be open from my end to remotely access the labs.
 ---
 
 ## 🚀 Features
