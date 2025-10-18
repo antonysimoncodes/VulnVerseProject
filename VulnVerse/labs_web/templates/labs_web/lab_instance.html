@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ instance.template.name }} - Lab Instance{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+    .lab-instance-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .lab-header {
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .lab-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .lab-frame-container {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .lab-frame-header {
+        background: var(--dark-color);
+        color: white;
+        padding: 0.75rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .lab-frame-title {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .lab-frame-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .lab-frame-actions button {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        border-radius: 4px;
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: var(--transition-fast);
+    }
+    
+    .lab-frame-actions button:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .lab-frame {
+        flex: 1;
+        border: none;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .lab-info-panel {
+        margin-top: 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .lab-info-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        padding: 1.5rem;
+    }
+    
+    .lab-info-card h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .lab-info-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .lab-info-card li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .lab-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .lab-status-running {
+        background-color: var(--success-color);
+        color: white;
+    }
+    
+    .lab-status-stopped {
+        background-color: var(--danger-color);
+        color: white;
+    }
+    
+    .lab-status-pending {
+        background-color: var(--warning-color);
+        color: var(--dark-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="lab-instance-container">
+    <div class="lab-header">
+        <div>
+            <a href="{% url 'lab_detail' instance.template.id %}" class="btn btn-secondary">← Back to Lab</a>
+            <h1 style="display: inline-block; margin-left: 1rem;">{{ instance.template.name }}</h1>
+            <span class="lab-status lab-status-{{ instance.status }}">{{ instance.get_status_display }}</span>
+        </div>
+        <div class="lab-controls">
+              <a href="{% url 'reset_lab' instance.template.id %}" class="btn btn-warning">Reset Lab</a>
+              <form method="POST" action="{% url 'stop_lab' instance.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger">Stop Lab</button>
+              </form>
+              <button class="btn btn-info" onclick="location.reload();">Refresh</button>
+        </div>
+    </div>
+    
+    <div class="lab-frame-container">
+        {% if instance.access_url %}
+            <div style="flex: 1; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem;">
+                <div class="lab-frame-title" style="color: var(--dark-color); font-weight: 600;">
+                <span>🌐</span>
+                <span>{{ instance.template.name }} - Lab Environment</span>
+            </div>
+                <button class="btn btn-primary" onclick="window.open('{{ instance.access_url }}', '_blank')">
+                    Open Lab in New Tab
+                </button>
+            </div>
+        {% else %}
+            <div style="flex: 1; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                <h2>Lab is not running</h2>
+                <p>Please start the lab to access the environment.</p>
+                <form method="POST" action="{% url 'start_lab' instance.template.id %}">
+                    {% csrf_token %}
+                            <button type="submit" class="btn btn-primary mt-2">Start Lab</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="lab-info-panel">
+        <div class="lab-info-card">
+            <h3>Lab Information</h3>
+            <ul>
+                <li><strong>Name:</strong> {{ instance.template.name }}</li>
+                <li><strong>Difficulty:</strong> {{ instance.template.get_difficulty_display }}</li>
+                <li><strong>Category:</strong> {{ instance.template.category }}</li>
+                <li><strong>Status:</strong> <span class="lab-status lab-status-{{ instance.status }}">{{ instance.get_status_display }}</span></li>
+            </ul>
+        </div>
+        
+        <div class="lab-info-card">
+            <h3>Instance Details</h3>
+            <ul>
+                <li><strong>Instance ID:</strong> {{ instance.id }}</li>
+                <li><strong>Created:</strong> {{ instance.created_at|date:"F d, Y g:i A" }}</li>
+                {% if instance.started_at %}
+                <li><strong>Started:</strong> {{ instance.started_at|date:"F d, Y g:i A" }}</li>
+                {% endif %}
+                {% if instance.stopped_at %}
+                <li><strong>Last Stopped:</strong> {{ instance.stopped_at|date:"F d, Y g:i A" }}</li>
+                {% endif %}
+                {% if instance.container_id %}
+                <li><strong>Container ID:</strong> {{ instance.container_id|truncatechars:12 }}</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

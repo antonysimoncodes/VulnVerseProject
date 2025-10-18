@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Register - A02 Crypto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Register</h1>
+      <form method="post">
+        <div class="form-group">
+          <label>Username</label>
+          <input name="username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input name="password" type="password">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input name="email" type="email">
+        </div>
+        <button type="submit" class="btn">Create Account</button>
+      </form>
+      <p><a class="back-link" href="{{ url_for('index') }}">Home</a></p>
+    </div>
+  </body>
+  </html>
+
+

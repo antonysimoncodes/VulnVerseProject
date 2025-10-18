@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Search - VulnShop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Product Search</h1>
+        
+        <form method="POST" action="{{ url_for('search') }}" class="form">
+            <div class="form-group">
+                <label for="search_term">Search Products:</label>
+                <input type="text" id="search_term" name="search_term" value="{{ search_term }}" required>
+            </div>
+            <button type="submit" class="btn">Search</button>
+        </form>
+        
+        {% if results %}
+        <div class="results">
+            <h2>Search Results</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in results %}
+                    <tr>
+                        <td>{{ product[0] }}</td>
+                        <td>{{ product[1] }}</td>
+                        <td>{{ product[2] }}</td>
+                        <td>${{ product[3] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <div class="hint-box">
+            <h3>Hint:</h3>
+            <p>This search function is vulnerable to SQL injection. Try to extract data from other tables.</p>
+            <p>Example: What happens if you use SQL operators in the search field?</p>
+        </div>
+        
+        <div class="navigation">
+            <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

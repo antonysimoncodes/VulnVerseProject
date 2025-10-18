@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}VulnVerse - Cybersecurity Learning Platform{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Welcome to VulnVerse</h1>
+            <p class="hero-subtitle">Master cybersecurity through interactive labs, real-world challenges, and expert guidance</p>
+            <div class="hero-actions">
+                <a href="{% url 'register' %}" class="btn btn-primary btn-large">Get Started</a>
+                <a href="{% url 'login' %}" class="btn btn-outline btn-large">Sign In</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="features-section">
+        <div class="container">
+            <h2>Why Choose VulnVerse?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Interactive Labs</h3>
+                    <p>Hands-on cybersecurity labs with real-world scenarios and challenges</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Blog & Share</h3>
+                    <p>Share your cybersecurity experiences and learn from the community</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👤</div>
+                    <h3>Personal Profile</h3>
+                    <p>Track your progress and build your cybersecurity portfolio</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

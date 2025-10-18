@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VulnShop - SQL Injection Lab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to VulnShop</h1>
+        <h2>SQL Injection Vulnerability Lab</h2>
+        
+        <div class="info-box">
+            <p>This lab demonstrates three different SQL injection vulnerabilities:</p>
+            <ol>
+                <li>
+                    <strong>Login Form</strong>: The login form is vulnerable to authentication bypass.
+                    <a href="{{ url_for('login') }}" class="btn">Try Login Form</a>
+                </li>
+                <li>
+                    <strong>Product Search</strong>: The search functionality is vulnerable to data extraction.
+                    <a href="{{ url_for('search') }}" class="btn">Try Product Search</a>
+                </li>
+                <li>
+                    <strong>User Profile</strong>: The user profile page is vulnerable to data manipulation.
+                    <a href="{{ url_for('login') }}" class="btn">Login to Try User Profile</a>
+                </li>
+            </ol>
+        </div>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <p>1. Start by exploring the login form vulnerability. Can you bypass authentication?</p>
+            <p>2. After logging in, try the product search functionality to extract hidden data.</p>
+            <p>3. Finally, explore the user profile page to see if you can access or modify other users' data.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,310 @@
+Step-by-Step: OWASP Top 10 Labs with Docker
+0) Target layout (mono-repo)
+VulnVerse/                      # your Django project
+  VulnVerse/
+  vulnverse_app/                # dashboard, auth, labs hub
+  labs/                         # all lab sources (each lab = its own image)
+    web/
+      a01-bac-idor/             # Broken Access Control (IDOR)
+      a02-crypto-fail/          # Cryptographic Failures
+      a03-injection-sqli/
+      a04-insecure-design/
+      a05-misconfig/
+      a06-vuln-components/
+      a07-auth-fail/
+      a08-data-integrity/
+      a09-logging-monitoring/
+      a10-ssrf/
+
+
+Each labs/web/<lab>/ folder contains a minimal vulnerable app + Dockerfile.
+
+1) Create a reusable base image (fast builds)
+
+labs/web/base-python/Dockerfile
+
+FROM python:3.11-slim
+RUN adduser --disabled-password --gecos "" appuser
+WORKDIR /app
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+USER appuser
+
+
+labs/web/base-python/requirements.txt
+
+flask
+jinja2
+requests
+
+
+Build once:
+
+docker build -t vulnverse/base-python:latest labs/web/base-python
+
+
+All Python labs will then inherit from this base image—fast incremental builds.
+
+2) Make one lab fully (template you’ll copy 10x)
+Example: A03 Injection (SQLi) – Flask + SQLite
+
+labs/web/a03-injection-sqli/Dockerfile
+
+FROM vulnverse/base-python:latest
+WORKDIR /app
+COPY app.py /app/app.py
+COPY seed.sql /app/seed.sql
+RUN sqlite3 /app/users.db < /app/seed.sql
+EXPOSE 80
+CMD ["python", "app.py"]
+
+
+labs/web/a03-injection-sqli/seed.sql
+
+DROP TABLE IF EXISTS users;
+CREATE TABLE users(id INTEGER PRIMARY KEY, username TEXT, password TEXT);
+INSERT INTO users(username,password) VALUES ('alice','alice123'),('bob','bob123');
+
+
+labs/web/a03-injection-sqli/app.py (intentionally vulnerable)
+
+from flask import Flask, request
+import sqlite3
+
+app = Flask(__name__)
+
+@app.route("/", methods=["GET","POST"])
+def sqli():
+    rows = []
+    error = ""
+    if request.method == "POST":
+        u = request.form.get("username","")
+        # ⚠️ vulnerable: direct string interpolation
+        q = f"SELECT id, username FROM users WHERE username = '{u}'"
+        try:
+            con = sqlite3.connect("users.db")
+            cur = con.cursor()
+            cur.execute(q)
+            rows = cur.fetchall()
+        except Exception as e:
+            error = str(e)
+        finally:
+            con.close()
+    return f"""
+    <h2>SQLi Lab (A03)</h2>
+    <form method="POST">
+      <input name="username" placeholder="username">
+      <button>Search</button>
+    </form>
+    <p>Try: ' OR '1'='1</p>
+    <pre>rows = {rows}\nerror = {error}</pre>
+    """
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=80)
+
+
+Build:
+
+docker build -t vulnverse/lab-a03-sqli:latest labs/web/a03-injection-sqli
+
+
+Repeat this pattern for each of the 10 labs (change app.py behavior to show that specific vuln).
+
+3) Quick recipes for the remaining labs
+OWASP Axx	Minimal lab idea (what to implement in the container)
+A01 Broken Access Control	IDOR: /profile?uid=2 returns any user’s JSON without checking session.
+A02 Cryptographic Failures	Store passwords with base64/MD5; route /leak shows password hashes; task: crack/login.
+A03 Injection	(done above) SQLi username search.
+A04 Insecure Design	Cart price comes from client: /checkout?price=1 trusts client; task: modify to ₹1.
+A05 Security Misconfiguration	Flask DEBUG=True, directory listing, permissive CORS Access-Control-Allow-Origin: *, missing security headers.
+A06 Vulnerable/Outdated Components	Serve old jQuery (1.x) with known XSS; task: exploit via DOM sink.
+A07 Identification & Auth Failures	Weak reset token predictable (/reset?token=1234), or no rate limiting on /login.
+A08 Software & Data Integrity Failures	Insecure deserialization: accept base64 Python pickle at /import, executes on load.
+A09 Logging & Monitoring Failures	Brute force /login never logged; show /logs with nothing recorded; task: brute force & note missing alerts.
+A10 SSRF	/fetch?url= server-request fetcher that can hit internal http://127.0.0.1:5000/flag. Also run an internal “admin” endpoint in same container on another port.
+
+Use the same base image; each lab exposes port 80 inside the container.
+
+4) Isolate labs on a dedicated Docker network
+
+Create once:
+
+docker network create --driver bridge vulnverse_net
+
+
+(Optionally --internal to block egress, but keep in mind some labs might need outbound.)
+
+5) Integrate with Django (start/stop/reset)
+Install SDK
+pip install docker
+
+Models (in a new labs_web app or inside vulnverse_app if you prefer)
+# labs_web/models.py
+from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class LabTemplate(models.Model):
+    key = models.SlugField(unique=True)          # e.g., "a03-sqli"
+    name = models.CharField(max_length=100)      # "A03 - Injection (SQLi)"
+    image = models.CharField(max_length=200)     # "vulnverse/lab-a03-sqli:latest"
+    internal_port = models.IntegerField(default=80)
+
+class LabInstance(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    template = models.ForeignKey(LabTemplate, on_delete=models.CASCADE)
+    container_id = models.CharField(max_length=128, blank=True)
+    host_port = models.IntegerField(null=True, blank=True)
+    status = models.CharField(max_length=32, default="stopped")
+    started_at = models.DateTimeField(auto_now_add=True)
+
+Service layer (Docker control)
+# labs_web/docker_ctl.py
+import docker
+
+client = docker.from_env()
+
+def start_lab_container(template_key, unique_name=None):
+    tpl = LabTemplate.objects.get(key=template_key)
+    name = unique_name or f"{tpl.key}"
+    # Map container 80 → random host port by passing None
+    c = client.containers.run(
+        tpl.image,
+        name=name,
+        detach=True,
+        network="vulnverse_net",
+        ports={f"{tpl.internal_port}/tcp": None},  # None => random host port
+        auto_remove=False,                         # we want to stop/remove ourselves
+        tty=True
+    )
+    c.reload()
+    host_port = int(c.attrs["NetworkSettings"]["Ports"][f"{tpl.internal_port}/tcp"][0]["HostPort"])
+    return c.id, host_port
+
+def stop_remove_container(name_or_id):
+    try:
+        c = client.containers.get(name_or_id)
+        c.stop()
+        c.remove()
+    except Exception:
+        pass
+
+Views (start/stop/reset)
+# labs_web/views.py
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render, get_object_or_404
+from .models import LabTemplate, LabInstance
+from .docker_ctl import start_lab_container, stop_remove_container
+
+@login_required
+def labs_index(request):
+    labs = LabTemplate.objects.all().order_by("key")
+    return render(request, "labs_web/index.html", {"labs": labs})
+
+@login_required
+def start_lab(request, key):
+    tpl = get_object_or_404(LabTemplate, key=key)
+    unique_name = f"{key}-{request.user.id}"
+    # Stop existing instance if any
+    LabInstance.objects.filter(user=request.user, template=tpl, status="running").update(status="stopped")
+    cid, port = start_lab_container(key, unique_name)
+    inst = LabInstance.objects.create(user=request.user, template=tpl, container_id=cid, host_port=port, status="running")
+    return redirect(f"http://localhost:{port}/")
+
+@login_required
+def stop_lab(request, key):
+    tpl = get_object_or_404(LabTemplate, key=key)
+    inst = LabInstance.objects.filter(user=request.user, template=tpl, status="running").last()
+    if inst:
+        stop_remove_container(inst.container_id)
+        inst.status = "stopped"
+        inst.save()
+    return redirect("labs_index")
+
+URLs
+# labs_web/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.labs_index, name="labs_index"),
+    path("<slug:key>/start/", views.start_lab, name="start_lab"),
+    path("<slug:key>/stop/", views.stop_lab, name="stop_lab"),
+]
+
+
+Include in project urls:
+
+# VulnVerse/urls.py
+path('labs/web/', include('labs_web.urls')),
+
+Template (list + actions)
+<!-- labs_web/templates/labs_web/index.html -->
+<h2>OWASP Top 10 Labs</h2>
+<ul>
+  {% for lab in labs %}
+    <li>
+      {{ lab.name }}
+      <a href="{% url 'start_lab' lab.key %}">Start</a>
+      <a href="{% url 'stop_lab' lab.key %}">Stop</a>
+    </li>
+  {% endfor %}
+</ul>
+
+Seed LabTemplate rows (fixture or admin)
+# quick seed (e.g., Django shell)
+from labs_web.models import LabTemplate
+LabTemplate.objects.bulk_create([
+  LabTemplate(key="a01-bac-idor", name="A01 - Broken Access Control (IDOR)", image="vulnverse/lab-a01-bac:latest"),
+  LabTemplate(key="a03-injection-sqli", name="A03 - Injection (SQLi)", image="vulnverse/lab-a03-sqli:latest"),
+  # ... add all A02..A10
+])
+
+6) Build & run workflow (developer)
+
+Build all lab images (one-time per change):
+
+docker build -t vulnverse/lab-a03-sqli:latest labs/web/a03-injection-sqli
+# ... build the rest
+
+
+Run Django:
+
+python manage.py runserver
+
+
+Visit /labs/web/ → Start a lab → you’re redirected to http://localhost:<random-port>/.
+
+7) Reset strategy
+
+Reset = stop + remove the container, then start again (fresh DB because DB is inside the image filesystem).
+
+Don’t mount host volumes; keep everything ephemeral in the container for clean resets.
+
+8) Safety hardening
+
+Run as non-root inside images (already done).
+
+Use the dedicated vulnverse_net network.
+
+Optionally block egress with --internal (if your labs don’t require outbound).
+
+Never expose these labs publicly without a reverse proxy + firewall rules.
+
+Keep dangerous endpoints limited to local dev or a locked lab environment.
+
+9) What to do next
+
+Implement A03 (SQLi) fully (above).
+
+Copy the folder and adapt the app.py for A10 (SSRF) and A01 (IDOR).
+
+Seed LabTemplate records for those keys/images.
+
+Verify start/stop from the Django UI.
+
+Expand to all 10.
+
+If you want, I can draft two more complete lab folders now (e.g., A01 IDOR and A10 SSRF) so you can build and test them immediately.

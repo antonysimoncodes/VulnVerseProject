@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}API Labs - Coming Soon{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+    .coming-soon-container {
+        max-width: 800px;
+        margin: 4rem auto;
+        text-align: center;
+        padding: 2rem;
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .coming-soon-icon {
+        font-size: 5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .coming-soon-container h1 {
+        margin-bottom: 1rem;
+        color: var(--dark-color);
+    }
+    
+    .coming-soon-container p {
+        color: #666;
+        margin-bottom: 2rem;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="coming-soon-container">
+    <div class="coming-soon-icon">📡</div>
+    <h1>API Security Labs</h1>
+    <p>{{ message }}</p>
+    <p>We're working hard to bring you interactive API security labs. Check back soon for exciting challenges!</p>
+    <a href="{% url 'academy' %}" class="btn btn-primary">Back to Academy</a>
+</div>
+{% endblock %}

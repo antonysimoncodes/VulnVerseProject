@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ template.name }} - Web Lab{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+    .lab-detail-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .lab-header {
+        margin-bottom: 2rem;
+    }
+    
+    .lab-content {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+    }
+    
+    .lab-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .lab-title h1 {
+        margin: 0;
+        color: var(--dark-color);
+    }
+    
+    .difficulty-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .difficulty-easy {
+        background-color: var(--success-color);
+        color: white;
+    }
+    
+    .difficulty-medium {
+        background-color: var(--warning-color);
+        color: var(--dark-color);
+    }
+    
+    .difficulty-hard {
+        background-color: var(--danger-color);
+        color: white;
+    }
+    
+    .lab-description {
+        margin-bottom: 2rem;
+    }
+    
+    .lab-actions {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .lab-info {
+        background-color: #f8f9fa;
+        border-radius: var(--border-radius-sm);
+        padding: 1.5rem;
+    }
+    
+    .lab-info ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .lab-info li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .status-available {
+        color: var(--success-color);
+        font-weight: 600;
+    }
+    
+    .status-unavailable {
+        color: var(--danger-color);
+        font-weight: 600;
+    }
+    
+    .lab-instance-info {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        border: 1px solid #eee;
+        border-radius: var(--border-radius-sm);
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="lab-detail-container">
+    <div class="lab-header">
+        <a href="{% url 'labs_index' %}" class="btn btn-secondary">← Back to Web Labs</a>
+    </div>
+    
+    <div class="lab-content">
+        <header class="lab-title">
+            <h1>{{ template.name }}</h1>
+            <span class="difficulty-badge difficulty-{{ template.difficulty }}">
+                {{ template.get_difficulty_display }}
+            </span>
+        </header>
+        
+        <div class="lab-description">
+            <h2>Description</h2>
+            <p>{{ template.description|linebreaks }}</p>
+        </div>
+        
+        <div class="lab-actions">
+                <form method="POST" action="{% url 'start_lab' template.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-large">Access Lab</button>
+                </form>
+                <button class="btn btn-outline">View Instructions</button>
+        </div>
+        
+        <div class="lab-info">
+            <h3>Lab Information</h3>
+            <ul>
+                <li><strong>Difficulty:</strong> {{ template.get_difficulty_display }}</li>
+                <li><strong>Category:</strong> {{ template.category }}</li>
+                <li><strong>Created:</strong> {{ template.created_at|date:"F d, Y" }}</li>
+                <li><strong>Status:</strong> 
+                    {% if template.is_active %}
+                        <span class="status-available">Available</span>
+                    {% else %}
+                        <span class="status-unavailable">Unavailable</span>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+        
+        {% if user_instance %}
+        <div class="lab-instance-info">
+            <h3>Your Lab Instance</h3>
+            <ul>
+                <li><strong>Status:</strong> {{ user_instance.get_status_display }}</li>
+                <li><strong>Created:</strong> {{ user_instance.created_at|date:"F d, Y g:i A" }}</li>
+                {% if user_instance.status == 'running' %}
+                <li><strong>Started:</strong> {{ user_instance.started_at|date:"F d, Y g:i A" }}</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

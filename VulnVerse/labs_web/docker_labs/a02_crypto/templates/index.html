@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Cryptographic Failures Lab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <h1>VulnShop (A02: Cryptographic Failures)</h1>
+      <p>This lab demonstrates weak password hashing (MD5) and predictable HMAC tokens.</p>
+      <p>
+        <a class="btn" href="{{ url_for('register') }}">Register</a>
+        <a class="btn" href="{{ url_for('login') }}">Login</a>
+      </p>
+    </div>
+  </body>
+  </html>
+
+

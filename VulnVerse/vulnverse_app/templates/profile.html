@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="text-center mb-4">
+        <h1 class="animate-slide-up">👤 {{ user.username }}'s Profile</h1>
+        <p class="text-center" style="color: #666; font-size: 1.2rem;">Manage your account and track your progress</p>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline">← Back to Dashboard</a>
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} animate-slide-up" style="max-width: 600px; margin: 0 auto 2rem;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="grid grid-2" style="gap: 2rem;">
+        <!-- Profile Info Card -->
+        <div class="card animate-slide-up">
+            <div class="text-center mb-3">
+                <div class="profile-avatar" style="width: 120px; height: 120px; margin: 0 auto 1rem; border-radius: 50%; overflow: hidden; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center;">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Profile Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div style="font-size: 3rem; color: white;">👤</div>
+                    {% endif %}
+                </div>
+                <h2 style="color: var(--dark-color); margin-bottom: 0.5rem;">{{ user.username }}</h2>
+                <p style="color: #666; margin-bottom: 0.5rem;">📧 {{ user.email }}</p>
+                <p style="color: #999; font-size: 0.9rem;">Member since: {{ user.date_joined|date:"F Y" }}</p>
+            </div>
+        </div>
+        
+        <!-- Edit Profile Form -->
+        <div class="card animate-slide-up" style="animation-delay: 0.2s;">
+            <h3 style="color: var(--dark-color); margin-bottom: 1.5rem; text-align: center;">✏️ Edit Profile</h3>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.bio.id_for_label }}">Bio:</label>
+                    {{ form.bio }}
+                    {% if form.bio.errors %}
+                        <div class="error-messages">
+                            {% for error in form.bio.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.avatar.id_for_label }}">Avatar:</label>
+                    {{ form.avatar }}
+                    {% if form.avatar.errors %}
+                        <div class="error-messages">
+                            {% for error in form.avatar.errors %}
+                                <span class="error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">💾 Update Profile</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Recent Blogs Section -->
+    <div class="card animate-slide-up" style="animation-delay: 0.4s; margin-top: 2rem;">
+        <h3 style="color: var(--dark-color); margin-bottom: 1.5rem; text-align: center;">📝 Your Recent Blogs</h3>
+        {% if user_blogs %}
+            <div class="grid grid-2" style="gap: 1rem;">
+                {% for blog in user_blogs %}
+                    <div class="card" style="padding: 1rem; background: var(--light-color); border: 1px solid #e0e0e0;">
+                        <h4 style="margin-bottom: 0.5rem;">
+                            <a href="{% url 'blog_detail' blog.id %}" style="color: var(--dark-color); text-decoration: none;">{{ blog.title }}</a>
+                        </h4>
+                        <p style="color: #666; font-size: 0.9rem; margin: 0;">📅 Posted on {{ blog.created_at|date:"M d, Y" }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center" style="padding: 2rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <p style="color: #666; margin-bottom: 1rem;">No blogs yet. Start sharing your cybersecurity experiences!</p>
+                <a href="{% url 'blog_create' %}" class="btn btn-primary">✍️ Create First Blog</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

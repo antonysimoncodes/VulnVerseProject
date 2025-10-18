@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Login - BAC Lab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Login</h1>
+      {% if error %}<p class="error">{{ error }}</p>{% endif %}
+      <form method="post">
+        <div class="form-group">
+          <label>Username</label>
+          <input name="username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input name="password" type="password">
+        </div>
+        <button type="submit" class="btn">Login</button>
+      </form>
+      <p><a class="link" href="/">Home</a></p>
+    </div>
+  </body>
+  </html>
+
+

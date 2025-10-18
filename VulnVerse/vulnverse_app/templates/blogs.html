@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blogs{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/blogs.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Vulnverse Blogs</h1>
+<div class="blog-container">
+    <div class="blog-card">
+        <h2>Understanding SQL Injection</h2>
+        <p>Learn the basics of SQL injection attacks and how to prevent them...</p>
+        <a href="#">Read More</a>
+    </div>
+
+    <div class="blog-card">
+        <h2>Cross-Site Scripting Explained</h2>
+        <p>Dive deep into XSS attacks and secure coding practices...</p>
+        <a href="#">Read More</a>
+    </div>
+</div>
+{% endblock %}

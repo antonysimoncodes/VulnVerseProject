@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Profile - A02 Crypto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Profile</h1>
+      <p><strong>Username:</strong> {{ username }}</p>
+      <p><strong>Email:</strong> {{ email }}</p>
+      <div class="hint-box">
+        <p>Auth token (predictable HMAC over username):</p>
+        <code>{{ token }}</code>
+      </div>
+      <p>
+        <a class="btn" href="{{ url_for('verify_token') }}?u={{ username }}&t={{ token }}">Verify Token</a>
+        <a class="btn" href="{{ url_for('logout') }}">Logout</a>
+      </p>
+    </div>
+  </body>
+  </html>
+
+

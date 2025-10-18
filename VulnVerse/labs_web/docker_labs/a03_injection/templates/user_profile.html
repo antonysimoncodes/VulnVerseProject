@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - VulnShop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>User Profile</h1>
+        
+        <div class="profile">
+            <h2>{{ user[1] }}</h2>
+            <table>
+                <tr>
+                    <th>ID:</th>
+                    <td>{{ user[0] }}</td>
+                </tr>
+                <tr>
+                    <th>Username:</th>
+                    <td>{{ user[1] }}</td>
+                </tr>
+                <tr>
+                    <th>Email:</th>
+                    <td>{{ user[3] }}</td>
+                </tr>
+                <tr>
+                    <th>Role:</th>
+                    <td>{{ user[4] }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="hint-box">
+            <h3>Hint:</h3>
+            <p>The user profile page is vulnerable to SQL injection through the URL parameter.</p>
+            <p>Try accessing other user profiles by manipulating the URL.</p>
+        </div>
+        
+        <div class="navigation">
+            <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+        </div>
+    </div>
+</body>
+</html>

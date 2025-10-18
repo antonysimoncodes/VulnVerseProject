@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lab.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/labs.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="lab-detail-container">
+    <div class="lab-header">
+        <a href="{% url 'labs' %}" class="btn btn-secondary">← Back to Labs</a>
+    </div>
+    
+    <div class="lab-content">
+        <header class="lab-title">
+            <h1>{{ lab.title }}</h1>
+            <span class="difficulty-badge difficulty-{{ lab.difficulty_level }}">
+                {{ lab.get_difficulty_level_display }}
+            </span>
+        </header>
+        
+        <div class="lab-description">
+            <h2>Description</h2>
+            <p>{{ lab.description|linebreaks }}</p>
+        </div>
+        
+        <div class="lab-actions">
+            <button class="btn btn-primary btn-large">Start Lab</button>
+            <button class="btn btn-outline">View Instructions</button>
+        </div>
+        
+        <div class="lab-info">
+            <h3>Lab Information</h3>
+            <ul>
+                <li><strong>Difficulty:</strong> {{ lab.get_difficulty_level_display }}</li>
+                <li><strong>Created:</strong> {{ lab.created_at|date:"F d, Y" }}</li>
+                <li><strong>Status:</strong> 
+                    {% if lab.is_available %}
+                        <span class="status-available">Available</span>
+                    {% else %}
+                        <span class="status-unavailable">Unavailable</span>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

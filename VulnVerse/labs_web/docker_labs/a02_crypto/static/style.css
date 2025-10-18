@@ -1,0 +1,14 @@
+/* Reuse VulnShop styling */
+body { font-family: Arial, sans-serif; background: #f4f4f4; color: #333; margin:0 }
+.container { width: 80%; max-width: 1000px; margin: 20px auto; background:#fff; padding:20px; border-radius:6px; box-shadow:0 0 10px rgba(0,0,0,.1) }
+h1 { color:#2c3e50 }
+.form-group { margin-bottom: 12px }
+label { display:block; margin-bottom:4px; font-weight:bold }
+input { width:100%; padding:8px; border:1px solid #ddd; border-radius:4px }
+.btn { display:inline-block; background:#3498db; color:#fff; padding:10px 14px; border:none; border-radius:4px; text-decoration:none; cursor:pointer; margin-right:6px }
+.btn:hover { background:#2980b9 }
+.error-message { background:#ffebee; color:#c62828; padding:10px; border-radius:4px; margin-bottom:10px }
+.back-link { color:#3498db; text-decoration:none }
+.back-link:hover { text-decoration: underline }
+.hint-box { background:#fffde7; border-left:4px solid #ffd600; padding:12px; margin:12px 0 }
+

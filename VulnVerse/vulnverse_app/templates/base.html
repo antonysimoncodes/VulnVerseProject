@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnverse - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light-color);">
+
+    <!-- Navbar -->
+    <nav style="background: var(--primary-gradient); padding: 1rem 2rem; box-shadow: var(--card-shadow); position: sticky; top: 0; z-index: 1000;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="{% url 'landing_page' %}" class="logo" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 700;">🎮 VulnVerse</a>
+            <ul class="nav-links" style="display: flex; list-style: none; gap: 2rem; margin: 0; padding: 0;">
+                <li><a href="{% url 'landing_page' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Home</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'academy' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Academy</a></li>
+                    <li><a href="{% url 'blogs' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Blogs</a></li>
+                    <li><a href="{% url 'dashboard' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Dashboard</a></li>
+                    <li><a href="{% url 'logout' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Login</a></li>
+                    <li><a href="{% url 'register' %}" style="color: white; text-decoration: none; font-weight: 500; transition: var(--transition);">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    <!-- Page Content -->
+    {% block content %}
+    {% endblock %}
+
+</body>
+</html>
